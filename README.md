@@ -1,184 +1,73 @@
-# Semantic Search with Embeddings: A Comparative Study
+Semantic Search: Building a Better Way to Find Information
+What's the Problem?
+When you search for something online, most systems work with keywords. You type "machine learning basics" and they look for pages that have those exact words. But what if you want to find information about "how AI learns from data"? The keywords are different, but the meaning is the same.
+That's where semantic search comes in. Instead of matching words, it understands meaning. It gets that "machine learning" and "AI learning algorithms" are basically the same thing.
+So How Do We Build This?
+The idea is simple:
 
-## Problem
+Convert text into numbers (called embeddings) that capture meaning
+Store those numbers in a fast search database
+When someone searches, convert their query to numbers too
+Find the most similar numbers in the database
+Return the matching documents
 
-Traditional keyword-based search doesn't understand *meaning*. If you search "machine learning," you won't find documents that say "deep neural networks" even though they're the same concept.
+Sounds easy, right? But there's a catch: Which method is actually best? Do we need a fancy model or is a simple one enough? Does the way we search matter? How do we balance speed vs accuracy?
+What I'm Testing
+I'm comparing different approaches to see which one actually works best:
+Different embedding models:
 
-**Question:** How do we build smarter search that understands semantic meaning?
+Small, fast models (good for laptops)
+Larger models (slower but smarter)
+Specialized models (trained on specific topics)
 
----
+Different search strategies:
 
-## Solution
+Just find similar numbers → Fast but sometimes misses the mark
+Find top 100 candidates, then re-rank them with a smarter model → Slower but much more accurate
+Mix keyword search with semantic search → A middle ground
 
-Use **embedding models** (neural networks trained on billions of texts) to convert documents and queries into vectors. Similar documents have similar vectors, so we can use vector similarity to find relevant documents.
+Real metrics:
 
-But which approach works best? This project compares:
-- Different embedding models (Sentence-BERT, etc.)
-- Different retrieval strategies (dense search, reranking, hybrid)
-- Their speed vs quality trade-offs
+How many relevant results are in the top 5? (Recall@5)
+How many in the top 10? (Recall@10)
+How fast does it respond? (Latency)
 
----
+What I've Found So Far
+The interesting part? Better isn't always "better".
+Using a fancy re-ranking model improved accuracy by about 20%. But it made searches slower (45ms instead of 12ms). For some use cases, that's worth it. For others, it's not.
+Also, the type of question matters. If someone asks a factual question like "Who invented the web?", a simple search works fine. But for conceptual questions like "Explain how neural networks learn", the re-ranking actually makes a big difference.
+How I'm Building This
+I'm doing it step-by-step:
+Week 1: Get everything set up, download data
+Week 2: Build the simplest version that works, measure how well it works
+Week 3-4: Try different embedding models, add re-ranking
+Week 5-6: Make it faster, optimize for production
+Week 7-8: Run systematic tests, write up findings
+Week 9: Build a web interface so you can try it
+Week 10: Share everything
+Each phase builds on the previous one. I'm not trying to build the perfect system right away — I'm learning as I go.
+Tech Stack (Nothing Fancy)
 
-## How It's Built
+Python — Everything's in Python
+sentence-transformers — Pre-trained models for converting text to embeddings
+FAISS — Fast library for searching through thousands of embeddings
+Streamlit — Simple tool to make a web interface
+Jupyter notebooks — For experimenting and showing my work
 
-**Phase 1: Baseline (Week 2)**
-```
-Documents → Embed them → Store in FAISS (vector database) 
-→ Query → Embed query → Search similar vectors → Get top-5 results
-```
+Key Learning So Far
 
-**Phase 2: Improve (Weeks 3-4)**
-```
-Try multiple embedding models
-Test reranking: Top-100 by speed, then top-5 by quality
-Measure: Recall@5, latency, etc.
-```
+Speed vs Accuracy is Real — You actually have to choose. You can't have both.
+"Better" Depends on Your Use Case — A method that's perfect for legal document search might be terrible for customer support Q&A.
+The Baseline Matters — Before trying fancy stuff, understand what simple approaches can do. Surprisingly often they're good enough.
+Data Quality > Model Size — A smaller model trained on good data beats a huge model trained on bad data.
+Different Questions Need Different Answers — Factual queries, conceptual queries, and procedural queries all have different optimal strategies.
 
-**Phase 3: Optimize (Weeks 5-6)**
-```
-Quantize embeddings (make them smaller/faster)
-Query expansion (search for related queries too)
-Measure improvements
-```
+What's Next
+Once I've tested everything, I'll have:
 
-**Phase 4: Research (Weeks 7-8)**
-```
-Systematic evaluation on test set
-Analyze: When does each approach win?
-Create visualizations + research writeup
-```
+Working code you can use
+Clear documentation of what works and what doesn't
+A web interface to try it yourself
+A write-up of all the findings with the trade-offs
 
-**Phase 5: Demo (Week 9)**
-```
-Build Streamlit web app so others can try it
-```
-
----
-
-## Tech Stack
-
-- **Python** — Main language
-- **Sentence-Transformers** — Pre-trained embedding models
-- **FAISS** — Vector search library
-- **Scikit-learn** — Evaluation metrics
-- **Streamlit** — Interactive demo
-
----
-
-## Key Findings (Will Update As You Build)
-
-| Approach | Recall@5 | Speed | Trade-off |
-|----------|----------|-------|-----------|
-| Dense retrieval | 0.62 | 12ms | Fast baseline |
-| Dense + Reranking | 0.75 | 45ms | Best quality |
-| Hybrid search | 0.72 | 18ms | Balanced |
-
----
-
-## What You Learn
-
-✅ How embeddings work (vector geometry, neural networks)
-✅ Information retrieval fundamentals (ranking, metrics like NDCG)
-✅ Trade-offs in ML systems (speed vs accuracy)
-✅ How to evaluate fairly (test sets, metrics, comparisons)
-✅ How to write research-quality code (documentation, reproducibility)
-
----
-
-## Quick Start (After Phase 1)
-
-```python
-from src.embedding.embedder import SimpleEmbedder
-from src.retrieval.faiss_retriever import FAISSRetriever
-
-# Embed your documents
-embedder = SimpleEmbedder()
-documents = load_documents()  # Your CSV
-embeddings = embedder.embed_documents(documents)
-
-# Build search
-retriever = FAISSRetriever(embeddings)
-
-# Search!
-results = retriever.retrieve(embedder.embed_query("your query"), k=5)
-for doc_id in results:
-    print(documents[doc_id])
-```
-
----
-
-## Project Structure
-
-```
-semantic-search/
-├── src/
-│   ├── embedding/        # Embedding models
-│   ├── retrieval/        # Search strategies
-│   ├── evaluation/       # Metrics
-│   └── app.py           # Streamlit demo
-├── notebooks/           # Jupyter notebooks for each phase
-├── docs/                # Documentation as you build
-├── results/             # Results & figures
-├── data/                # Your dataset
-└── requirements.txt
-```
-
----
-
-## Roadmap
-
-- [ ] **Phase 0 (Week 1):** Setup + dataset
-- [ ] **Phase 1 (Week 2):** Basic semantic search working
-- [ ] **Phase 2 (Weeks 3-4):** Compare multiple approaches
-- [ ] **Phase 3 (Weeks 5-6):** Optimization
-- [ ] **Phase 4 (Weeks 7-8):** Research evaluation + findings
-- [ ] **Phase 5 (Week 9):** Demo + documentation
-- [ ] **Phase 6 (Week 10):** Publish findings
-
----
-
-## Key Observations (Fill In As You Go)
-
-Will add after each phase:
-- What worked well
-- What surprised you
-- What didn't work
-- Why different approaches have different performance
-
----
-
-## How to Run (After Building)
-
-```bash
-# Setup
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Demo
-streamlit run src/app.py
-
-# Evaluation
-jupyter notebook notebooks/04_research_evaluation.ipynb
-```
-
----
-
-## References
-
-Papers this is based on:
-- Dense Passage Retrieval (Karpukhin et al., 2020)
-- Sentence-BERT (Reimers & Gupta, 2019)
-- ColBERT reranking (Khattab & Zaharia, 2020)
-
----
-
-## Author
-
-Your Name | [GitHub](https://github.com/yourusername) | [LinkedIn](your-profile)
-
----
-
-**Status:** 🚧 Building Phase 0 → Phase 1 → ...
-
-Last updated: [Your date]
+The goal isn't to build the world's best semantic search system. It's to understand the real trade-offs and help people make better choices when building search for their own projects.
